@@ -17,6 +17,7 @@ type Board struct {
     grid [][]int
 }
 
+
 func MakeBoard(dimension int) Board {
     // Create a board with the given dimensions
     var grid = make([][]int, dimension)
@@ -55,6 +56,56 @@ func (board *Board) AddCounter(player int, column int) ([]int, error) {
 }
 
 
+// Win checking
+
+
+func (board Board) CheckPlayerWin(player int) bool {
+    return checkHorizontal(board, player) || checkVertical(board, player)
+}
+
+
+func checkHorizontal(board Board, player int) bool {
+    for y, row := range board.grid {
+        for x := 0; x < len(row) - 4; x++  {
+            var array []int
+            for i := 0; i < 4; i++ {
+                array = append(array, board.grid[y][x + i])
+            }
+            if checkArray(array, player) == true {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+
+func checkVertical(board Board, player int) bool {
+    for x := 0;  x < board.dimension; x++ {
+        for y := 0; y < board.dimension - 3; y++ {
+            var array []int
+            for i := 0; i < 4; i++ {
+                array = append(array, board.grid[y + i][x])
+            }
+            if checkArray(array, player) == true {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+
+func checkArray(array []int, player int) bool {
+    for _, value := range array {
+        if value != player{
+            return false
+        }
+    }
+    return true
+}
+
+
 // Game
 
 
@@ -62,7 +113,6 @@ type Game struct {
     turn int
     player1 string
     player2 string
-    winner int
     board Board
 }
 
@@ -78,7 +128,8 @@ func (game *Game) Initialise() {
     game.turn = 1
 }
 
-func (game *Game) PlayTurn() {
+
+func (game *Game) PlayTurn() bool {
     var player int
 
     if game.turn % 2 == 0 {
@@ -94,6 +145,20 @@ func (game *Game) PlayTurn() {
         game.PlayTurn()
     }
     game.turn ++
+    return game.board.CheckPlayerWin(player)
+}
+
+
+// Helper functions
+
+
+func ReadInput(output string) string {
+    // Read input from stdin and return the string
+    fmt.Println(output)
+    var reader = bufio.NewReader(os.Stdin)
+    var text, _ = reader.ReadString('\n')
+    text = strings.TrimSuffix(text, "\n")
+    return text
 }
 
 
@@ -105,18 +170,15 @@ func main() {
     game.Initialise()
 
     for {
-        game.PlayTurn()
+        var is_win = game.PlayTurn()
+        fmt.Println("BOARD")
         fmt.Println(game.board)
+
+        if is_win {
+            fmt.Println("Winner!")
+            break
+        }
     }
 
 
-}
-
-func ReadInput(output string) string {
-    // Read input from stdin and return the string
-    fmt.Println(output)
-    var reader = bufio.NewReader(os.Stdin)
-    var text, _ = reader.ReadString('\n')
-    text = strings.TrimSuffix(text, "\n")
-    return text
 }
